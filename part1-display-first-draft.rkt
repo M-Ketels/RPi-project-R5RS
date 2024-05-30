@@ -10,6 +10,8 @@
 (define column-1 #t)
 (define column-2 #t)
 
+(define matrix (make-vector 9))
+
 
 (define (activate-row row-number)
     (cond 
@@ -22,6 +24,15 @@
         ((= column-number 0) (set! column-0 #f))
         ((= column-number 1) (set! column-1 #f))
         ((= column-number 2) (set! column-2 #f))))
+
+(define (reset-rows-colums)
+    (set! row-0 #f)
+    (set! row-1 #f)
+    (set! row-2 #f)
+
+    (set! column-0 #t)
+    (set! column-1 #t)
+    (set! column-2 #t))
 
 (define (print-led-matrix) ;; very ugly but works so whatever
     (let* 
@@ -48,12 +59,84 @@
         )
         (display (string-append led00-display led01-display led02-display "\n"))
         (display (string-append led10-display led11-display led12-display "\n"))
-        (display (string-append led20-display led21-display led22-display "\n"))
+        (display (string-append led20-display led21-display led22-display "\n\n"))))
+
+
+
+
+;; input:   a 3x3 binary image in the form of a boolean vector of length 9
+;; output:  a function that sets the first row, then prints, then sets the second
+;;          row, then prints, then sets the third row, then prints
+(define (linear-matrix-to-led)
+    (define (set-row-n n)
+        (let
+            ((column0 (if (= 1 (vector-ref matrix (* 3 n))) #t #f))
+            (column1 (if (= 1 (vector-ref matrix (+ 1 (* 3 n)))) #t #f))
+            (column2 (if (= 1 (vector-ref matrix (+ 2 (* 3 n)))) #t #f)))
+        
+
+        (activate-row n)
+        ;(display column0)(display column1)(display column2)
+        (if column0 (deactivate-column 0) (void))
+        (if column1 (deactivate-column 1) (void))
+        (if column2 (deactivate-column 2) (void))
+        )
     )
+
+    (set-row-n 0)
+    (print-led-matrix)
+    (reset-rows-colums)
+    (set-row-n 1)
+    (print-led-matrix)
+    (reset-rows-colums)
+    (set-row-n 2)
+    (print-led-matrix)
+    (reset-rows-colums)
 )
 
-(activate-row 0)
-(deactivate-column 0)
-(deactivate-column 2)
 
-(print-led-matrix)
+;; the matrix can only have one lit pixel
+(define (roll-pixel direction)
+    (define (find-index-and-set-zero current-index)
+        (cond
+            ((= 0 (vector-ref matrix current-index)) 
+                (find-index-and-set-zero (+ current-index 1)))
+            ((= 1 (vector-ref matrix current-index))
+                (vector-set! matrix current-index 0)
+                current-index)
+            (else (display "illegal occupation of matrix: ")(display matrix))      
+        )
+    )
+    (define (find-new-index current-index direction)
+        (cond
+            ((eq? direction 'up)
+                (max (- current-index 3) current-index)) ;; max and min are wrong: just needs an if statement of something
+            ((eq? direction 'down)
+                (min (+ current-index 3) current-index))
+            ((eq? direction 'left)
+                (if (= 0 (modulo current-index 3)) current-index (- current-index 1)))
+            ((eq? direction 'right)
+                (if (= 2 (modulo current-index 3)) current-index (+ current-index 1)))
+            (else (display "illegal direction")(display direction))
+        )
+    )
+    (vector-set! matrix (find-new-index (find-index-and-set-zero 0) direction) 1)
+)
+
+(define (test-deel-1)
+    (set! matrix (vector 1 0 1 0 1 0 1 0 1))
+
+    (display matrix)(display "\n")
+
+    (linear-matrix-to-led)
+)
+
+(define (test-roll-pixel)
+    (set! matrix (vector 0 0 0 0 1 0 0 0 0))
+    (linear-matrix-to-led)
+    (display "up\n")
+    (roll-pixel 'up)
+    (linear-matrix-to-led)
+)
+
+(test-roll-pixel)
