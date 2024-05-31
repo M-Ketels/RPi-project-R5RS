@@ -8,3 +8,6 @@
 (loop-function)
 ;; use ctrl + c
 ;; to stop procedure from running for ever
+
+;; racket -t file.rkt -i
+;; for a read-eval-print-loop
