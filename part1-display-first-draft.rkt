@@ -107,16 +107,29 @@
             (else (display "illegal occupation of matrix: ")(display matrix))      
         )
     )
+    (define (within-matrix new-index index direction)
+        (cond
+            ((or (eq? direction 'up) (eq? direction 'down))
+                (if (or (> new-index 8) (< new-index 0))
+                    index
+                    new-index))
+            ((or (eq? direction 'left) (eq? direction 'right))
+                (if (not (= (quotient new-index 3) (quotient index 3)))
+                    index
+                    new-index))
+        )
+        
+    )
     (define (find-new-index current-index direction)
         (cond
             ((eq? direction 'up)
-                (max (- current-index 3) current-index)) ;; max and min are wrong: just needs an if statement of something
+                (within-matrix (- current-index 3) current-index direction)) ;; max and min are wrong: just needs an if statement of something
             ((eq? direction 'down)
-                (min (+ current-index 3) current-index))
+                (within-matrix (+ current-index 3) current-index direction))
             ((eq? direction 'left)
-                (if (= 0 (modulo current-index 3)) current-index (- current-index 1)))
+                (within-matrix (- current-index 1) current-index direction))
             ((eq? direction 'right)
-                (if (= 2 (modulo current-index 3)) current-index (+ current-index 1)))
+                (within-matrix (+ current-index 1) current-index direction))
             (else (display "illegal direction")(display direction))
         )
     )
@@ -134,9 +147,20 @@
 (define (test-roll-pixel)
     (set! matrix (vector 0 0 0 0 1 0 0 0 0))
     (linear-matrix-to-led)
-    (display "up\n")
-    (roll-pixel 'up)
+    (display "left\n")
+    (roll-pixel 'right)
+    (linear-matrix-to-led)
+    (display "left\n")
+    (roll-pixel 'right)
+    (linear-matrix-to-led)
+    (display "down\n")
+    (roll-pixel 'down)
+    (linear-matrix-to-led)
+    (display "down\n")
+    (roll-pixel 'down)
     (linear-matrix-to-led)
 )
+
+
 
 (test-roll-pixel)
